@@ -20,7 +20,7 @@ public class Post {
     private String title;
     private String body;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.MERGE, orphanRemoval = true)
     private Set<Comment> comments = new HashSet<>();
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<History> history = new HashSet<>();

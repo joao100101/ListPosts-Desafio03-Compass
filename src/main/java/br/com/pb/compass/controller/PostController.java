@@ -28,9 +28,15 @@ public class PostController {
 
     @PostMapping("/{id}")
     public String getPostFromExternalAPI(@PathVariable Long id){
-
-
-        postService.addToQueue(id, new Date());
+        if(id != null){
+            if(id > 0 && id <= 100){
+                postService.addToQueue(id, new Date());
+            }else{
+                return "O id deve ser um valor entre 1 e 100";
+            }
+        }else{
+            return "O Valor inserido nao deve ser nulo";
+        }
 
         return "Procurando Post id: " + id + "\n" + new Date();
     }

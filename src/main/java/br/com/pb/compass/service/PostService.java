@@ -10,6 +10,5 @@ public interface PostService {
     void addToQueue(Long id, Date requestTime);
     void save(Post post);
     List<PostDTO> findAll();
-    PostDTO findByID(Long id);
 }
 

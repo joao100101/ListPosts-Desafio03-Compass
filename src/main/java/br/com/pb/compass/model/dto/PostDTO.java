@@ -15,17 +15,17 @@ import java.util.Set;
 @NoArgsConstructor
 public class PostDTO {
 
-    private Long userId;
     private Long id;
     private String title;
     private String body;
+    private Set<CommentDTO> comments;
     private Set<HistoryDTO> history;
 
     public PostDTO(Post post){
-        this.userId = post.getUserId();
         this.id = post.getId();
         this.title = post.getTitle();
         this.body = post.getBody();
+        this.comments = new HashSet<>(post.getComments().stream().map(CommentDTO::new).toList());
         this.history = new HashSet<>(post.getHistory().stream().map(HistoryDTO::new).toList());
     }
 }

@@ -23,7 +23,7 @@ public class PostServiceImpl implements PostService {
 
     private PostRepository repository;
     private static final ExecutorService threadpool =
-            Executors.newFixedThreadPool(1);
+            Executors.newFixedThreadPool(5);
 
     @Autowired
     public PostServiceImpl(PostRepository repository) {
@@ -33,29 +33,8 @@ public class PostServiceImpl implements PostService {
     @Override
     public void addToQueue(Long id, Date requestTime) {
         if (this.repository.findById(id).isEmpty()) {
-            History created = new History(requestTime, State.CREATED);
-            History find = new History(new Date(), State.POST_FIND);
-
             ProcessQueue processQueue = new ProcessQueue(id);
-            Future<List<Post>> future = threadpool.submit(processQueue);
-
-            System.out.println("ID: " + id + ", adicionado na fila as: " + new Date());
-            try {
-                for (Post p : future.get()) {
-                    created.setPost(p);
-                    find.setPost(p);
-
-                    p.addHistory(created);
-                    p.addHistory(find);
-
-                    System.out.println("Salvando post id: " + p.getId());
-                    save(p);
-
-                }
-            } catch (InterruptedException | ExecutionException e) {
-
-                throw new RuntimeException(e);
-            }
+            executeSearch(processQueue, requestTime);
         } else {
             throw new PostAlreadyExistsException("Ja existe um post com o ID " + id);
         }
@@ -70,6 +49,29 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    public void executeSearch(ProcessQueue processQueue, Date requestTime){
+        new Thread(() ->{
+            Future<List<Post>> future = threadpool.submit(processQueue);
+            History created = new History(requestTime, br.com.pb.compass.model.State.CREATED);
+            History find = new History(new Date(), br.com.pb.compass.model.State.POST_FIND);
+
+            try {
+                for (Post p : future.get()) {
+                    created.setPost(p);
+                    find.setPost(p);
+
+
+                    p.addHistory(created);
+                    p.addHistory(find);
+
+                    save(p);
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
+
     @Override
     public List<PostDTO> findAll() {
         List<Post> posts = repository.findAll();
@@ -77,10 +79,4 @@ public class PostServiceImpl implements PostService {
         return posts.stream().map(PostDTO::new).toList();
     }
 
-    @Override
-    public PostDTO findByID(Long id) {
-        Post post = repository.findById(id).orElseThrow(() -> new PostNotFoundException("Nao encotrado post com id " + id));
-
-        return new PostDTO(post);
-    }
 }

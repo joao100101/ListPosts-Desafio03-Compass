@@ -17,6 +17,7 @@ public class ProcessQueue implements Callable<List<Post>> {
 
     private final Queue<Long> queue = new LinkedList<>();
     private final List<Post> processedPosts = new ArrayList<>();
+    private Set<History> histories = new HashSet<>();
     private final RestTemplate rest = new RestTemplate();
 
     public ProcessQueue(Long id) {
@@ -25,17 +26,17 @@ public class ProcessQueue implements Callable<List<Post>> {
 
     @Override
     public List<Post> call() {
-        System.out.println("Iniciando processamento da fila. Data: " + new Date());
         Post post;
 
         for (long l : queue) {
             post = new Post();
             post.setId(l);
             post = getPostAsync(post);
-            if (post != null) {
-                if (!processedPosts.contains(post)) {
-                    processedPosts.add(post);
-                }
+
+            if (!processedPosts.contains(post)) {
+                getCommentsAsync(post);
+                post.setHistory(histories);
+                processedPosts.add(post);
             }
             queue.remove(l);
         }
@@ -43,7 +44,6 @@ public class ProcessQueue implements Callable<List<Post>> {
     }
 
     public Post getPostAsync(Post post) {
-
         Long id = post.getId();
         try {
             ResponseEntity<Post> response = rest.exchange(
@@ -55,40 +55,34 @@ public class ProcessQueue implements Callable<List<Post>> {
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 post = response.getBody();
-                System.out.println("Encontrado ID: " + id + ", horario: " + new Date());
+                if (post == null) {
+                    post = new Post();
+                }
 
-                History ok = new History(new Date(), State.POST_OK);
-                ok.setPost(post);
-                post.addHistory(ok);
+                addHistory(post, State.POST_OK);
 
                 post.setId(id);
-                post = getCommentsAsync(post);
                 return post;
             } else {
-                History fail = new History(new Date(), State.FAILED);
-                post.addHistory(new History(new Date(), State.DISABLED));
-                fail.setPost(post);
-                post.addHistory(fail);
-
-                System.err.println("Falha ao recuperar id: " + id + ", horario: " + new Date());
+                addHistory(post, State.FAILED);
+                addHistory(post, State.DISABLED);
+                post.setId(id);
                 return post;
             }
         } catch (HttpClientErrorException e) {
-            History fail = new History(new Date(), State.FAILED);
-            fail.setPost(post);
-            post.addHistory(fail);
-            post.addHistory(new History(new Date(), State.DISABLED));
-
-            System.err.println("Falha ao recuperar id: " + id + ", horario: " + new Date());
-            System.err.println(e.getStatusCode());
+            post = new Post();
+            addHistory(post, State.FAILED);
+            addHistory(post, State.DISABLED);
+            post.setId(id);
             return post;
         }
     }
 
-    public Post getCommentsAsync(Post post) {
+    public void getCommentsAsync(Post post) {
         Long id = post.getId();
-        History commentFind = new History(new Date(), State.COMMENTS_FIND);
-        post.addHistory(commentFind);
+
+        addHistory(post, State.COMMENTS_FIND);
+
         try {
             ResponseEntity<Comment[]> response = rest.exchange(
                     "https://jsonplaceholder.typicode.com/posts/" + post.getId() + "/comments",
@@ -97,42 +91,34 @@ public class ProcessQueue implements Callable<List<Post>> {
                     Comment[].class
             );
 
-            if (response.getStatusCode() == HttpStatus.OK) {
-                Set<Comment> comments = new HashSet<>(Arrays.asList(response.getBody()));
-                comments.forEach((comment) -> {
-                    comment.setPost(post);
-                });
-                post.setComments(new HashSet<>(comments));
-                System.out.println("Encontrado comentarios, horario: " + new Date());
 
-                History ok = new History(new Date(), State.COMMENTS_OK);
-                ok.setPost(post);
-                post.addHistory(ok);
-                post.addHistory(new History(new Date(), State.ENABLED));
+            if (response.getStatusCode() == HttpStatus.OK) {
+
+                Set<Comment> comments = new HashSet<>(Arrays.asList(response.getBody()));
+
+
+                for (Comment comment : comments) {
+                        Comment c1 = new Comment(comment.getBody(), post);
+                        post.getComments().add(c1);
+                }
+
+
+                addHistory(post, State.COMMENTS_OK);
+                addHistory(post, State.ENABLED);
 
                 post.setId(id);
-                return post;
             } else {
-                History fail = new History(new Date(), State.FAILED);
-                fail.setPost(post);
-                post.addHistory(fail);
-                post.addHistory(new History(new Date(), State.DISABLED));
-
-                System.err.println("Falha ao recuperar id: " + id + ", horario: " + new Date());
-                return post;
+                addHistory(post, State.FAILED);
+                addHistory(post, State.DISABLED);
             }
         } catch (HttpClientErrorException e) {
-            History fail = new History(new Date(), State.FAILED);
-
-            fail.setPost(post);
-            post.addHistory(fail);
-            post.addHistory(new History(new Date(), State.DISABLED));
-
-            System.err.println("Falha ao recuperar id: " + id + ", horario: " + new Date());
-            System.err.println(e.getStatusCode());
-            return post;
+            addHistory(post, State.FAILED);
+            addHistory(post, State.DISABLED);
         }
     }
 
-
+    public void addHistory(Post post, State state){
+        History hist = new History(new Date(), state, post);
+        histories.add(hist);
+    }
 }

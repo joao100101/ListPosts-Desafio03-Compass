@@ -17,17 +17,28 @@ public class AsyncSearchTest {
     public static Queue<Long> queue = new LinkedList<>();
 
     public static void main(String[] args) {
-        System.out.println("Fila iniciada: " + new Date());
 
+        Post p = new Post();
+        p.setTitle("Normal title");
 
-        for (long i = 1L; i <= 100L; i++) {
-            addToQueue(i);
-        }
-        addToQueue(101L);
+        System.out.println(p.getTitle());
+        changeAt(p);
+        System.out.println(p.getTitle());
+
+//        System.out.println("Fila iniciada: " + new Date());
+//
+//
+//        for (long i = 1L; i <= 100L; i++) {
+//            addToQueue(i);
+//        }
+//        addToQueue(101L);
 
 
     }
 
+    public static void changeAt(Post p){
+        p.setTitle("alterado");
+    }
 
     public static void addToQueue(Long id) {
         ProccessQueue proccessQueue = new ProccessQueue(id);

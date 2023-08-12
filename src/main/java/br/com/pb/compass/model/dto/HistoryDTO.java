@@ -15,7 +15,6 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HistoryDTO {
-
     private Long id;
     private Date date;
     private State state;

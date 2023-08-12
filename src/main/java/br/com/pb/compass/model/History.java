@@ -7,9 +7,6 @@ import java.util.Date;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-
 @Entity
 @Table(name = "history")
 public class History {
@@ -28,5 +25,14 @@ public class History {
     public History(Date date, State state) {
         this.date = date;
         this.state = state;
+    }
+    public History(Date date, State state, Post post){
+        this.date = date;
+        this.state = state;
+        this.post = post;
+    }
+
+    protected History() {
+
     }
 }
