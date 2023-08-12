@@ -6,10 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
-
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class ErrorDetails {
     private Date timeStamp;
     private String message;

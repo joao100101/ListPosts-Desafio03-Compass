@@ -12,14 +12,23 @@ import java.util.Date;
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    @ExceptionHandler(PostNotFoundException.class)
+    public ResponseEntity<ErrorDetails> handlePostNotFoundException(PostNotFoundException ex, WebRequest request){
+        ErrorDetails errorDetails = new ErrorDetails(new Date(), ex.getMessage(), request.getDescription(false));
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(PostAlreadyExistsException.class)
+    public ResponseEntity<ErrorDetails> handlePostAlreadyExistsException(PostAlreadyExistsException ex, WebRequest request){
+        ErrorDetails errorDetails = new ErrorDetails(new Date(), ex.getMessage(), request.getDescription(false));
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.CONFLICT);
+    }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorDetails> handleGlobalExceptions(Exception ex, WebRequest web){
-        ErrorDetails details = new ErrorDetails();
-
-        details.setTimeStamp(new Date());
-        details.setMessage(ex.getMessage());
-        details.setDetails(web.getDescription(false));
+    public ResponseEntity<ErrorDetails> handleGenericExceptions(Exception e, WebRequest request){
+        ErrorDetails details = new ErrorDetails(new Date(), e.getMessage(), request.getDescription(false));
 
         return new ResponseEntity<>(details, HttpStatus.INTERNAL_SERVER_ERROR);
     }

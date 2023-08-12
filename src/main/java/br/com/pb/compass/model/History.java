@@ -1,27 +1,32 @@
 package br.com.pb.compass.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Date;
 
-@Data
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
 
 @Entity
-@Table(name = "histories")
+@Table(name = "history")
 public class History {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Date date;
-    @Enumerated(EnumType.STRING)
-    private Status status;
+    private State state;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
+
+
+    public History(Date date, State state) {
+        this.date = date;
+        this.state = state;
+    }
 }
