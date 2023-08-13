@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -116,6 +117,11 @@ public class PostServiceImpl implements PostService {
         List<Post> posts = repository.findAll();
 
         return posts.stream().map(PostDTO::new).toList();
+    }
+
+    @Override
+    public Post findById(Long id) {
+        return this.repository.findById(id).orElseThrow(() -> new PostNotFoundException(POST_NOT_FOUND + id));
     }
 
     @Override

@@ -10,6 +10,7 @@ public interface PostService {
     void save(Post post);
     void update(Post post);
     List<PostDTO> findAll();
+    Post findById(Long id);
     void disablePost(Long postID);
     void addToUpdateQueue(Long postID);
 }
