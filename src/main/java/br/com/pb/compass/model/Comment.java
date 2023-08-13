@@ -14,11 +14,12 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "comments")
-public class Comment implements Cloneable {
+public class Comment{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "body", length = 2516)
     private String body;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,14 +32,4 @@ public class Comment implements Cloneable {
         this.post = post;
     }
 
-    @Override
-    public Comment clone() {
-        try {
-            Comment clone = (Comment) super.clone();
-            // TODO: copy mutable state here, so the clone can't change the internals of the original
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
-    }
 }

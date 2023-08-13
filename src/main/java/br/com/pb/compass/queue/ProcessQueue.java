@@ -1,9 +1,6 @@
 package br.com.pb.compass.queue;
 
-import br.com.pb.compass.model.Comment;
-import br.com.pb.compass.model.History;
-import br.com.pb.compass.model.Post;
-import br.com.pb.compass.model.State;
+import br.com.pb.compass.model.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
